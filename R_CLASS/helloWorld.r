@@ -1,4 +1,4 @@
-# 24/04/2019
+# Aula ministrada em: 24/04/2019
 # Criacao de vetores para o exercico da aula de R
 
 vetLogico <- c(T,T,F,F)
