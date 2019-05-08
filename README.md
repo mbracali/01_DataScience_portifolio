@@ -1,2 +1,2 @@
-# MBA
-Estudos relacionados e direcionados as atividades de MBA
+# Portifolio de algoritimos e atividades relacionadas a Data Science
+
