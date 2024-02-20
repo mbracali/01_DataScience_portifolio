@@ -1,3 +1,7 @@
+
+### Essa classe esta em desenvolvimento, nao utilizar
+Force Error
+
 import sys, os, urllib
 from llama_cpp import Llama # para instalar = pip install llama-cpp-python
 from llama_index import VectorStoreIndex, SimpleDirectoryReader, StorageContext, load_index_from_storage
