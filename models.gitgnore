@@ -1,0 +1,4 @@
+# Arquivos de modelo
+*.gguf
+*.bin
+*.gml
