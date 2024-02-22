@@ -385,6 +385,6 @@ class LLM_With_Rag:
         print("====================================")
         print(question)
         rag_chain.invoke(question)
-        print("\n====================================")
+        print("\n====================================\n")
 
         #return rag_chain
