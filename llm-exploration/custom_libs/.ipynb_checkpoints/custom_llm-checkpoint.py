@@ -24,7 +24,7 @@ from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 
 # Import de libs utils da Nutrien
-from custom_libs.ds_utils import hardware_info
+from ds_utils import hardware_info
 
 
 
@@ -95,9 +95,8 @@ class LLM_With_Rag:
                  create_storage_db = True,
                  device = "cpu", # Aceita cpu, gpu e auto para gpu se possivel
                  save_results = False,
-                 assist_log = False,
-                 llm_verbose = True,):
-
+                 assist_log = False,):
+        
         # [ATRIB] Variavel que guarda qual e o modelo que vai ser utilziado
         self.model_name = model_name
 
@@ -141,13 +140,6 @@ class LLM_With_Rag:
             # Captura e exibe as informacoes em saida de terminal
             hi.get_info()
 
-        # Inicializa objeto de retriever e vectorstorage
-        self.retriever = None
-        self.vectorstore = None
-
-        # Grava o parametro verbose de inicializacao do modelo
-        self.llm_verbose = llm_verbose
-
 
     def __create_db(self,):
         """Caso a execucao precise criar uma base de dados com os
@@ -180,7 +172,6 @@ class LLM_With_Rag:
             # Caso o log esteja ligado mostra os documentos carregados
             if self.assist_log:
                 print(f"""Total de documentos encontrados: {len(documents)} """)
-                print("Indexando...")
 
             # Divide os arquivos txt em chunks
             text_splitter = RecursiveCharacterTextSplitter(chunk_size=120, chunk_overlap=0)
@@ -198,7 +189,7 @@ class LLM_With_Rag:
 
             # Caso o log esteja ligado avisa sobre a persistencia do vetor
             if self.assist_log:
-                print("Base de dados criada em: ", self.storage_path)
+                print("Vector store created in:", self.storage_path)
                 return True
 
 
@@ -245,18 +236,17 @@ class LLM_With_Rag:
         try:
             # Carrega o modelo de embeddings
             embeddings = HuggingFaceEmbeddings()
-
+        
             # Carrega a base FAISS
-            self.vectorstore = FAISS.load_local(self.storage_path, embeddings)
+            vectorstore = FAISS.load_local(self.storage_path, embeddings)
 
             if self.assist_log:
                 # Caso log esteja ligado avisa sobre o carregamento com sucesso
                 print("VectorStore carregado a partir de:"+ self.storage_path)
-                # print(f"""Vector storage: {self.vectorstore}""") for debug
 
             # Retorna objeto de vetores previamente carregado no disco
-            return self.vectorstore
-
+            return vectorstore
+            
         except Exception as e:
 
             print(f""" --- Error reading documents or DB store ---
@@ -285,7 +275,7 @@ class LLM_With_Rag:
             return False
 
 
-    def __generate_model(self,):
+    def __generate_model(self, verbose = True):
         """Gera resposta utilizando o modelo escolhido e o contexto
         RAG apresentado
 
@@ -303,16 +293,12 @@ class LLM_With_Rag:
                 n_ctx=2048,
                 f16_kv=True,
                 callback_manager=CallbackManager([StreamingStdOutCallbackHandler()]),
-                verbose=self.llm_verbose,
+                verbose=verbose,
                 )
 
             if self.device != "cpu":
                 # Variavel de utilizacao de GPU ou nao
                 self.device = "cuda" if torch.cuda.is_available() else "cpu"
-
-            # Avisa sobre o modelo para o log
-            if self.assist_log: 
-                print("Modelo carregado e instanciado com sucesso")
 
             return True
 
@@ -332,30 +318,25 @@ class LLM_With_Rag:
             new_db (bool, optional): Cria banco de dados de documentos caso True. Padrao True.
         """
 
-        # Avisa o log sobre inicio do processo
-        if self.assist_log: 
-            print("Ligando os motores...")
+        if self.assist_log: print("Starting engines....")
 
         # Constroi o banco de dados vetorizado
         if new_db:
             self.__create_db()
 
-        # Gera objeto da vector store
-        self.__get_db()
-
+        # Gera objeto da vector store 
+        vector_store = self.__get_db()
+        
         # Cria modelo da LLM escolhida
         self.__generate_model()
 
         # Devolve o banco em um objeto retriever
-        # retriever = self.vectorstore.as_retriver()
+        self.retriever = vector_store.as_retriver()
 
-        if self.assist_log:
-            print("Warmup do motor finalizado")
-
-        return self.vectorstore
+        if self.assist_log: print("Vrum vrum....")
 
 
-    def answer_me(self,question):
+    def answer_me(self,):
         """Metodo responsavel por responder perguntas"""
 
         prompt_template= """
@@ -372,19 +353,15 @@ class LLM_With_Rag:
 
         # Abstraction of Prompt
         prompt = ChatPromptTemplate.from_template(prompt_template)
-        #output_parser = StrOutputParser()
+        output_parser = StrOutputParser()
 
         # Criando a cadeia LLM
         llm_chain = LLMChain(llm=self.llm, prompt=prompt)
 
         # Cadeia de resposta RAG
         rag_chain = ( 
-        {"context": self.vectorstore.as_retriever(), "question": RunnablePassthrough()}
+        {"context": self.retriever, "question": RunnablePassthrough()}
             | llm_chain
         )
-        print("====================================")
-        print(question)
-        rag_chain.invoke(question)
-        print("\n====================================")
 
-        #return rag_chain
+        return rag_chain

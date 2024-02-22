@@ -97,7 +97,6 @@ Epinotia aporema	1,0 a 2,0 L/ha ou
 
 
 
-
 CULTURA	PRAGAS Nome Comum/ Nome Científico	
 DOSE	NÚMERO, ÉPOCA E INTERVALO DE APLICAÇÃO
 TOMATE	Broca-pequena-do-fruto
