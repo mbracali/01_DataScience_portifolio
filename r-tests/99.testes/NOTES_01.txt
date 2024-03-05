@@ -1,4 +1,0 @@
-Padronizar = Transformar as unidades de uma amostra em quantidade de desvios padrão
-(Média é 0) (No R é o comando scale)
-
-Normalizar = Scaller

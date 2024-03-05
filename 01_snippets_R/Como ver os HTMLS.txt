@@ -1,0 +1,3 @@
+Para ver os HTML's dos exemplos contidos nesse portifolio, utilize o site https://htmlpreview.github.io/
+
+Coloque a URL do exemplo que você quer ver na caixa que aparece no site e aguarde o carregamento do html.

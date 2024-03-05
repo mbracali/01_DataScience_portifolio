@@ -1,0 +1,127 @@
+---
+title: "Analise_Autos"
+author: "Marcelo Bracali"
+date: "30/07/2019"
+output: html_document
+---
+
+Para iniciar esse markdown, vamos instalar todos os pacotes necessários
+```{r}
+#install.packages("corrgram")
+#install.packages("tclust")
+#install.packages("cluster")
+#install.packages("fpc")
+```
+
+## Base Autos
+
+Esse markdown tem como objetivo analisar e classificar uma base automoveis.
+Para o inicio da analise, vamos ler a base de dados e verificar informações sobre a mesma:
+
+```{r}
+carros <- read.table ("C:/2019_workspace/2_PROJETOS/8_PORTIFOLIOS/BaseAutos/Arquivo_AvaliaçãoAutomóveis_2.csv", sep=";", row.names=1 , header=T) # Le a base de dados
+str(carros) # Informacoes sobre cada variavel
+names(carros) # Mostra todas as colunas importadas
+summary(carros) # Exibe caracteristicas estatisticas de cada coluna importada
+```
+
+Para continuar com as analises vamos separar apenas algumas variaveis e entender a sua estrutura através de elementos visuais:
+
+```{r}
+partcarros <- carros[,c(2,3,4,5,6,7,8,9,10,11,12)]
+attach(partcarros)
+str(partcarros)
+par (mfrow=c(3,4))
+hist(cilindr)
+hist(PotLiqMx)
+hist(TorqLqMx)
+hist(Ac_0_100)
+hist(Vel_Max)
+hist(Comp)
+hist(Disteixo)
+hist(Larg)
+hist(Alt)
+hist(Volcarga)
+hist(Tanque)
+par (mfrow=c(1,1))
+```
+
+Com a distribuição mostrada, nos falta entender a correlação entre as variaveis:
+```{r}
+matcor <- cor(partcarros)
+print(matcor, digits = 2)
+
+library(corrgram)
+corrgram(matcor, type = "cor", lower.panel = panel.shade, upper.panel = panel.pie)
+
+panel.cor <- function(x, y, digits=2, prefix ="", cex.cor,
+                      ...)  {
+  usr <- par("usr")
+  on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- cor(x, y , use = "pairwise.complete.obs")
+  txt <- format(c(r, 0.123456789), digits = digits) [1]
+  txt <- paste(prefix, txt, sep = "")
+  if (missing(cex.cor))
+    cex <- 0.8/strwidth(txt)
+  # abs(r) ï¿½ para que na saï¿½da as correlaï¿½ï¿½es ficam proporcionais
+  text(0.5, 0.5, txt, cex = cex * abs(r))
+}
+pairs(partcarros, lower.panel=panel.smooth, upper.panel=panel.cor)
+```
+
+
+Para realizar uma "clusterização da melhor forma possivel vamos utilizar uma técnica de padronização
+
+```{r}
+geraclus_car <- scale(partcarros) # Padroniza o dataset
+summary(geraclus_car) # Dados estatisticos 
+
+hier_cluster<-hclust(dist(geraclus_car),method='ward.D2') # Cria clusterizacao
+d <- dist(geraclus_car, method = "euclidean") # Calcula a distancia euclidiana das amostras 
+plot(hier_cluster, ylab='distancia', cex=0.6) # Plota o dendograma
+
+groups <- cutree(hier_cluster, k=5) # Corta o dendograma em 5 agrupamentos
+rect.hclust(hier_cluster, k=5, border="red") 
+
+groups <- cutree(hier_cluster, k=3) # Corta o dendograma em 3 agrupamentos
+rect.hclust(hier_cluster, k=3, border="blue") 
+```
+
+
+Para determinar com certeza o numero de clusters, vamos utilizar o elbow method
+```{r}
+wss <- (nrow(geraclus_car)-1)*sum(apply(geraclus_car,2,var))
+for (i in 2:20) wss[i] <- sum(kmeans(geraclus_car,
+                                     centers=i)$withinss)
+plot(1:20, wss, type="b", xlab="Clusters",
+     ylab="Within groups sum of squares") 
+```
+
+Através do Elbow Method decidi continuar com 4 clusters.
+Vamos a criação e plot de clusters e mostra a quantidade de carros em cada cluster
+```{r}
+
+library(tclust)
+clus_teste <- tkmeans(geraclus_car, k = 4, alpha = 0.03)
+plot(clus_teste)
+set.seed(33)
+output_cluster<-kmeans(geraclus_car,4)
+segmento<-output_cluster$cluster
+table (segmento)
+library(cluster)
+clusplot(geraclus_car, output_cluster$cluster, color=TRUE, shade=TRUE,
+         labels=2, lines=0 , cex=0.75)
+
+```
+
+
+
+A partir dessa analise, podemos seguir com uma analise de PCA, mas para fins de agrupamento a analise pode se encerrar aqui.
+
+
+
+
+
+
+
