@@ -71,6 +71,7 @@ class hardware_info():
         
         # Recupera dados de GPU
         gpus = GPUtil.getGPUs()
+        gpu_avaliable = GPUtil.getFirstAvailable()
 
         # Formata o relatorio de exibicao
         # Preferivelmente exibido em um Jupyter notebook
@@ -112,6 +113,7 @@ class hardware_info():
     ==============================================
      GPU:
       GPU:....................{gpus}
+      GPU Avaliable:..........{gpu_avaliable}
 
     ==============================================
     """)

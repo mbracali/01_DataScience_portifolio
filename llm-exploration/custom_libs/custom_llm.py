@@ -23,7 +23,7 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_core.runnables import RunnablePassthrough
 from langchain_core.prompts import ChatPromptTemplate
 
-# Import de libs utils da Nutrien
+# Import de libs utils para informacao de hardware
 from custom_libs.ds_utils import hardware_info
 
 
@@ -68,6 +68,7 @@ class suppress_stdout_stderr(object):
 
         self.outnull_file.close()
         self.errnull_file.close()
+
 
 class LLM_With_Rag:
     """Essa classe roda uma LLM com RAG.
