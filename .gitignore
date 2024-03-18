@@ -2,4 +2,4 @@
 *.gguf
 *.bin
 *.gml
-
+*.DS_store
